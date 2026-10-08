@@ -115,18 +115,9 @@ p { color: var(--muted); }
   color: #fff;
   padding: clamp(5rem, 12vw, 9rem) 0 clamp(4rem, 9vw, 7rem);
   background:
-    radial-gradient(1200px 600px at 80% -10%, rgba(63,168,101,.35), transparent 60%),
-    linear-gradient(160deg, var(--green-800) 0%, var(--green-900) 55%, #082417 100%);
+    linear-gradient(118deg, rgba(8,36,23,.92) 0%, rgba(11,51,34,.78) 50%, rgba(15,61,36,.60) 100%),
+    url('assets/hero-bg.jpg') center / cover no-repeat;
   overflow: hidden;
-}
-.hero::after {
-  content: "";
-  position: absolute; inset: 0;
-  background-image:
-    radial-gradient(circle at 1px 1px, rgba(255,255,255,.08) 1px, transparent 0);
-  background-size: 28px 28px;
-  opacity: .5;
-  pointer-events: none;
 }
 .hero-inner { position: relative; max-width: 820px; }
 .eyebrow {
@@ -137,13 +128,8 @@ p { color: var(--muted); }
 .hero-sub { color: rgba(255,255,255,.82); font-size: clamp(1.02rem, 1.6vw, 1.2rem); max-width: 640px; }
 .hero-actions { display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 2rem; }
 .hero-note { margin-top: 1.8rem; font-size: .85rem; color: rgba(255,255,255,.6); letter-spacing: .02em; }
-.hero { padding-bottom: clamp(7rem, 14vw, 11rem); }
-.hero-scene {
-  position: absolute; left: 0; right: 0; bottom: -1px; width: 100%;
-  height: clamp(130px, 18vw, 220px); display: block; z-index: 1; pointer-events: none;
-}
+.hero { padding-bottom: clamp(5rem, 11vw, 8.5rem); }
 .hero-inner { z-index: 2; }
-@media (max-width: 560px) { .hero-scene { opacity: .9; } }
 
 /* ---------- Stats ---------- */
 .stats { margin-top: -3rem; position: relative; z-index: 5; }

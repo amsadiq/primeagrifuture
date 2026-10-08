@@ -16,10 +16,10 @@
 // ============================================================
 
 export const firebaseConfig = {
-  apiKey: "PASTE_YOUR_API_KEY",
-  authDomain: "PASTE_YOUR_PROJECT.firebaseapp.com",
-  projectId: "PASTE_YOUR_PROJECT_ID",
-  storageBucket: "PASTE_YOUR_PROJECT.appspot.com",
-  messagingSenderId: "PASTE_YOUR_SENDER_ID",
-  appId: "PASTE_YOUR_APP_ID"
+  apiKey: "AIzaSyBsEoP0MFctojvSszm0t5mdj1BAihYDb_0",
+  authDomain: "prime-agrifuture.firebaseapp.com",
+  projectId: "prime-agrifuture",
+  storageBucket: "prime-agrifuture.firebasestorage.app",
+  messagingSenderId: "361347099238",
+  appId: "1:361347099238:web:64db607241632b59855ba7"
 };

@@ -38,7 +38,7 @@ For each partner/founder:
 3. Share the email/password with them (they can change the password later).
 
 Suggested accounts:
-- Pary Hedima (CEO), Sadiq Muhammad Abubakar (COO), Fred Hosea (CFO),
+- Parry Hedima (CEO), Sadiq Muhammad Abubakar (COO), Fred Hosea (CFO),
   David Ajoma (Risk & Compliance), Alwan Nasir (Plans & Strategy).
 
 ---

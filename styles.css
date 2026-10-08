@@ -205,15 +205,7 @@ p { color: var(--muted); }
 }
 .gallery-tall { grid-row: span 2; }
 .gallery-wide { grid-column: span 2; }
-.gallery-ph {
-  width: 100%; height: 100%; display: grid; place-items: center; font-size: 2.6rem;
-  background:
-    repeating-linear-gradient(45deg, rgba(31,138,76,.05) 0 12px, transparent 12px 24px),
-    linear-gradient(135deg, var(--cream) 0%, var(--cream-2) 100%);
-  position: relative; transition: transform .4s var(--ease);
-}
 .gallery-img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .4s var(--ease); }
-.gallery-item:hover .gallery-ph,
 .gallery-item:hover .gallery-img { transform: scale(1.05); }
 .gallery-item figcaption {
   position: absolute; left: 0; right: 0; bottom: 0; padding: .7rem .9rem;
@@ -245,7 +237,6 @@ p { color: var(--muted); }
   padding: 1rem 1.2rem; text-align: center; font-weight: 600; color: var(--green-700);
   box-shadow: var(--shadow-sm);
 }
-.gov-note { font-size: .92rem; }
 
 /* Team: founders & partners */
 .team-block { margin-top: 2.6rem; }
@@ -288,43 +279,13 @@ p { color: var(--muted); }
 .invest-foot .proj-disclaimer { margin: 0; flex: 1; min-width: 240px; }
 .invest-foot .btn { flex: 0 0 auto; white-space: nowrap; }
 
-.invest-layout { display: grid; grid-template-columns: 1fr 1.1fr; gap: 1.8rem; align-items: stretch; }
-.invest-plan, .invest-proj {
-  background: #fff; border-radius: var(--radius); padding: 2rem;
-  border: 1px solid rgba(15,61,36,.08); box-shadow: var(--shadow-sm);
-}
-.invest-plan h3, .invest-proj h3 { color: var(--green-700); margin-bottom: 1.2rem; }
-
-.plan-list { list-style: none; display: grid; gap: .2rem; }
-.plan-list li {
-  display: flex; justify-content: space-between; align-items: center; gap: 1rem;
-  padding: .85rem 0; border-bottom: 1px dashed rgba(15,61,36,.14);
-}
-.plan-list li:last-child { border-bottom: 0; }
-.plan-k { color: var(--muted); font-size: .96rem; }
-.plan-v { font-weight: 700; color: var(--green-800); font-family: "Fraunces", serif; font-size: 1.1rem; }
-
-.revenue-streams { margin-top: 1.4rem; padding-top: 1.3rem; border-top: 2px solid var(--cream-2); }
-.rs-label { display: block; text-transform: uppercase; letter-spacing: .12em; font-size: .72rem; font-weight: 700; color: var(--green-500); margin-bottom: .7rem; }
 .rs-tags { display: flex; flex-wrap: wrap; gap: .5rem; }
 .rs-tags span {
   background: var(--cream-2); color: var(--green-800); font-weight: 600; font-size: .85rem;
   padding: .45rem .9rem; border-radius: 999px;
 }
 .rs-note { margin-top: .8rem; font-size: .9rem; }
-
-.proj-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-.proj-card {
-  background: var(--cream); border: 1px solid rgba(15,61,36,.08); border-radius: var(--radius-sm);
-  padding: 1.4rem 1.2rem; text-align: center;
-}
-.proj-highlight { background: linear-gradient(135deg, var(--green-600), var(--green-800)); border-color: transparent; }
-.proj-highlight .proj-num { color: #fff; }
-.proj-highlight .proj-label { color: var(--gold-soft); }
-.proj-num { display: block; font-family: "Fraunces", serif; font-weight: 700; font-size: clamp(1.4rem, 3vw, 2rem); color: var(--green-600); line-height: 1; }
-.proj-label { display: block; margin-top: .5rem; font-size: .82rem; color: var(--muted); }
-.proj-disclaimer { margin-top: 1.3rem; font-size: .8rem; color: var(--muted); line-height: 1.5; font-style: italic; }
-.proj-cta { margin-top: 1.1rem; }
+.proj-disclaimer { font-size: .8rem; color: var(--muted); line-height: 1.5; font-style: italic; }
 
 /* ---------- Invest CTA ---------- */
 .invest-cta {
@@ -397,7 +358,7 @@ p { color: var(--muted); }
 
 /* ---------- Responsive ---------- */
 @media (max-width: 960px) {
-  .about-grid, .contact-grid, .invest-layout { grid-template-columns: 1fr; }
+  .about-grid, .contact-grid { grid-template-columns: 1fr; }
   .cards, .impact-grid, .stats-grid, .gov-grid, .team-grid-3 { grid-template-columns: repeat(2, 1fr); }
   .gallery-grid { grid-template-columns: repeat(2, 1fr); }
   .gallery-wide { grid-column: span 2; }
@@ -421,7 +382,7 @@ p { color: var(--muted); }
 }
 @media (max-width: 560px) {
   .model-grid { grid-template-columns: 1fr; }
-  .cards, .impact-grid, .stats-grid, .gov-grid, .footer-inner, .proj-grid,
+  .cards, .impact-grid, .stats-grid, .gov-grid, .footer-inner,
   .team-grid, .team-grid-3, .gallery-grid, .invest-card-grid { grid-template-columns: 1fr; }
   .gallery-wide { grid-column: span 1; }
   .invest-block:last-child { padding-top: 1.4rem; border-top: 1px solid var(--cream-2); }

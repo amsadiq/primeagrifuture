@@ -95,13 +95,8 @@ img { display:block; max-width:100%; }
 .mini-list { list-style:none; display:grid; gap:.7rem; }
 .mini-list li { font-size:.9rem; padding-bottom:.7rem; border-bottom:1px dashed var(--line); }
 .mini-list li:last-child { border-bottom:0; }
-.mini-list li.empty, .breakdown .empty { color:var(--muted); font-size:.88rem; border:0; }
+.mini-list li.empty, .finance-summary .empty { color:var(--muted); font-size:.88rem; border:0; }
 .mini-list .ml-date { color:var(--muted); font-size:.78rem; }
-.breakdown { display:grid; gap:.7rem; }
-.bk-row { display:flex; align-items:center; gap:.7rem; font-size:.9rem; }
-.bk-bar { flex:1; height:10px; background:var(--cream-2); border-radius:999px; overflow:hidden; }
-.bk-fill { height:100%; background:linear-gradient(90deg,var(--green-500),var(--green-700)); border-radius:999px; }
-.bk-count { font-weight:700; color:var(--green-700); min-width:1.5rem; text-align:right; }
 
 /* Tables */
 .table-wrap { background:#fff; border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow-sm); overflow-x:auto; }

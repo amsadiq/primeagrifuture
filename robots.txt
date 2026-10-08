@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /portal.html
+
+Sitemap: https://amsadiq.github.io/primeagrifuture/sitemap.xml

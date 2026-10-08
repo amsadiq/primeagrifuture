@@ -286,6 +286,7 @@ p { color: var(--muted); }
   background: linear-gradient(135deg, var(--green-500), var(--green-700));
 }
 .avatar-soft { background: linear-gradient(135deg, var(--gold), #b5901f); }
+.avatar-photo { object-fit: cover; object-position: center top; padding: 0; background: var(--cream-2); }
 .person-info { display: flex; flex-direction: column; min-width: 0; }
 .person-name { font-weight: 700; color: var(--green-900); font-size: 1.02rem; line-height: 1.2; }
 .person-role { font-size: .85rem; color: var(--muted); margin-top: .15rem; }

@@ -226,11 +226,6 @@ p { color: var(--muted); }
     linear-gradient(135deg, var(--cream) 0%, var(--cream-2) 100%);
   position: relative; transition: transform .4s var(--ease);
 }
-.gallery-ph::after {
-  content: attr(data-label); position: absolute; bottom: 12px; left: 0; right: 0;
-  text-align: center; font-size: .72rem; font-weight: 700; letter-spacing: .08em;
-  text-transform: uppercase; color: var(--green-500);
-}
 .gallery-item:hover .gallery-ph { transform: scale(1.05); }
 .gallery-item figcaption {
   position: absolute; left: 0; right: 0; bottom: 0; padding: .7rem .9rem;
@@ -292,6 +287,19 @@ p { color: var(--muted); }
 .person-role { font-size: .85rem; color: var(--muted); margin-top: .15rem; }
 
 /* ---------- Investment Opportunity ---------- */
+.invest-card {
+  max-width: 860px; margin-inline: auto; background: #fff; border-radius: var(--radius);
+  border: 1px solid rgba(15,61,36,.08); box-shadow: var(--shadow-sm); padding: clamp(1.6rem, 3vw, 2.4rem);
+}
+.invest-card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
+.invest-block h3 { color: var(--green-700); margin-bottom: 1rem; font-size: 1.2rem; }
+.invest-foot {
+  margin-top: 1.8rem; padding-top: 1.6rem; border-top: 2px solid var(--cream-2);
+  display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; flex-wrap: wrap;
+}
+.invest-foot .proj-disclaimer { margin: 0; flex: 1; min-width: 240px; }
+.invest-foot .btn { flex: 0 0 auto; white-space: nowrap; }
+
 .invest-layout { display: grid; grid-template-columns: 1fr 1.1fr; gap: 1.8rem; align-items: stretch; }
 .invest-plan, .invest-proj {
   background: #fff; border-radius: var(--radius); padding: 2rem;
@@ -408,7 +416,7 @@ p { color: var(--muted); }
   .gallery-tall { grid-row: span 1; }
   .footer-inner { grid-template-columns: 1fr 1fr; }
 }
-@media (max-width: 720px) {
+@media (max-width: 900px) {
   .nav {
     position: fixed; inset: 72px 0 auto 0; flex-direction: column; align-items: stretch;
     gap: 0; background: #fff; padding: .5rem 1.25rem 1.25rem; border-bottom: 1px solid rgba(15,61,36,.1);
@@ -416,7 +424,8 @@ p { color: var(--muted); }
   }
   .nav.open { transform: translateY(0); }
   .nav a { padding: .9rem .2rem; border-bottom: 1px solid rgba(15,61,36,.06); }
-  .nav .nav-cta { text-align: center; margin-top: .7rem; }
+  .nav .nav-cta, .nav .nav-login { text-align: center; margin-top: .7rem; }
+  .nav .nav-login { justify-content: center; }
   .nav-toggle { display: flex; }
   .nav-toggle.open span:nth-child(1) { transform: translateY(7.5px) rotate(45deg); }
   .nav-toggle.open span:nth-child(2) { opacity: 0; }
@@ -425,8 +434,10 @@ p { color: var(--muted); }
 @media (max-width: 560px) {
   .model-grid { grid-template-columns: 1fr; }
   .cards, .impact-grid, .stats-grid, .gov-grid, .footer-inner, .proj-grid,
-  .team-grid, .team-grid-3, .gallery-grid { grid-template-columns: 1fr; }
+  .team-grid, .team-grid-3, .gallery-grid, .invest-card-grid { grid-template-columns: 1fr; }
   .gallery-wide { grid-column: span 1; }
+  .invest-block:last-child { padding-top: 1.4rem; border-top: 1px solid var(--cream-2); }
+  .invest-foot .btn { width: 100%; }
   .stats { margin-top: -2rem; }
 }
 

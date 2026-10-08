@@ -5,20 +5,44 @@
 import { firebaseConfig } from "./firebase-config.js";
 
 const FB_VERSION = "10.12.2";
-const COLLECTIONS = ["livestock", "feed", "births", "activities"];
+const COLLECTIONS = ["goats", "cattle", "crops", "transactions", "feed", "births", "activities"];
 
 /* ---------- Field schemas (drive forms + validation) ---------- */
+const ANIMAL_FIELDS = (tagPh) => [
+  { k: "tagId", label: "Tag ID", type: "text", required: true, half: true, ph: tagPh },
+  { k: "name", label: "Name", type: "text", half: true },
+  { k: "breed", label: "Breed", type: "text", half: true, ph: "e.g. Red Sokoto" },
+  { k: "sex", label: "Sex", type: "select", required: true, half: true, options: ["Female", "Male"] },
+  { k: "dob", label: "Date of birth", type: "date", half: true },
+  { k: "status", label: "Status", type: "select", required: true, half: true, options: ["Active", "Sold", "Deceased"] },
+  { k: "notes", label: "Notes", type: "textarea" }
+];
+
 const SCHEMAS = {
-  livestock: {
-    singular: "animal",
+  goats: { singular: "goat", fields: ANIMAL_FIELDS("e.g. PAF-G014") },
+  cattle: { singular: "head of cattle", fields: ANIMAL_FIELDS("e.g. PAF-C007") },
+  crops: {
+    singular: "crop",
     fields: [
-      { k: "tagId", label: "Tag ID", type: "text", required: true, half: true, ph: "e.g. PAF-014" },
-      { k: "name", label: "Name", type: "text", half: true },
-      { k: "type", label: "Type", type: "select", required: true, half: true, options: ["Goat", "Cow", "Sheep", "Poultry", "Other"] },
-      { k: "breed", label: "Breed", type: "text", half: true, ph: "e.g. Red Sokoto" },
-      { k: "sex", label: "Sex", type: "select", required: true, half: true, options: ["Female", "Male"] },
-      { k: "dob", label: "Date of birth", type: "date", half: true },
-      { k: "status", label: "Status", type: "select", required: true, half: true, options: ["Active", "Sold", "Deceased"] },
+      { k: "name", label: "Crop", type: "text", required: true, half: true, ph: "e.g. Maize" },
+      { k: "variety", label: "Variety", type: "text", half: true, ph: "e.g. SAMMAZ 15" },
+      { k: "area", label: "Area (hectares)", type: "number", half: true, ph: "e.g. 2" },
+      { k: "plantingDate", label: "Planting date", type: "date", half: true },
+      { k: "expectedHarvest", label: "Expected harvest", type: "date", half: true },
+      { k: "status", label: "Status", type: "select", required: true, half: true, options: ["Planned", "Growing", "Harvested", "Failed"] },
+      { k: "yieldKg", label: "Yield (kg)", type: "number", half: true, ph: "if harvested" },
+      { k: "notes", label: "Notes", type: "textarea" }
+    ]
+  },
+  transactions: {
+    singular: "transaction",
+    fields: [
+      { k: "date", label: "Date", type: "date", required: true, half: true },
+      { k: "type", label: "Type", type: "select", required: true, half: true, options: ["Income", "Expense"] },
+      { k: "category", label: "Category", type: "select", required: true, half: true, options: ["Livestock sale", "Crop sale", "Investment", "Other income", "Feed", "Veterinary", "Labour", "Equipment", "Infrastructure", "Seeds & inputs", "Utilities", "Transport", "Other expense"] },
+      { k: "amount", label: "Amount (₦)", type: "number", required: true, half: true, ph: "e.g. 150000" },
+      { k: "method", label: "Method", type: "select", half: true, options: ["Cash", "Bank transfer", "Mobile money", "Cheque", "Other"] },
+      { k: "description", label: "Description", type: "text", half: true, ph: "What was this for?" },
       { k: "notes", label: "Notes", type: "textarea" }
     ]
   },
@@ -128,7 +152,7 @@ function makeDemoStore() {
 /* ============================================================
    STATE + HELPERS
    ============================================================ */
-const state = { livestock: [], feed: [], births: [], activities: [] };
+const state = { goats: [], cattle: [], crops: [], transactions: [], feed: [], births: [], activities: [] };
 let currentUser = null;
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
@@ -336,13 +360,28 @@ function actionCell(coll, id) {
   </td>`;
 }
 
-const RENDERERS = {
-  livestock: (r) => `<tr>
+const animalRow = (coll) => (r) => `<tr>
     <td><span class="tag-pill">${esc(r.tagId || "—")}</span></td>
-    <td>${esc(r.name || "—")}</td><td>${esc(r.type || "—")}</td><td>${esc(r.breed || "—")}</td>
+    <td>${esc(r.name || "—")}</td><td>${esc(r.breed || "—")}</td>
     <td>${sexBadge(r.sex)}</td><td>${fmtDate(r.dob)}</td>
     <td><span class="badge badge-${(r.status || "active").toLowerCase()}">${esc(r.status || "Active")}</span></td>
-    ${actionCell("livestock", r.id)}</tr>`,
+    ${actionCell(coll, r.id)}</tr>`;
+
+const RENDERERS = {
+  goats: animalRow("goats"),
+  cattle: animalRow("cattle"),
+  crops: (r) => `<tr>
+    <td><span class="tag-pill">${esc(r.name || "—")}</span></td>
+    <td>${esc(r.variety || "—")}</td><td>${fmtNum(r.area)}</td>
+    <td>${fmtDate(r.plantingDate)}</td><td>${fmtDate(r.expectedHarvest)}</td>
+    <td><span class="badge badge-${cropBadge(r.status)}">${esc(r.status || "Planned")}</span></td>
+    <td>${fmtNum(r.yieldKg)}</td>${actionCell("crops", r.id)}</tr>`,
+  transactions: (r) => `<tr>
+    <td>${fmtDate(r.date)}</td>
+    <td><span class="badge ${r.type === "Income" ? "badge-active" : "badge-expense"}">${esc(r.type || "—")}</span></td>
+    <td>${esc(r.category || "—")}</td><td>${esc(r.description || "—")}</td>
+    <td class="amount ${r.type === "Income" ? "amount-in" : "amount-out"}">${r.type === "Income" ? "+" : "−"}₦${fmtNum(r.amount)}</td>
+    <td>${esc(r.method || "—")}</td>${actionCell("transactions", r.id)}</tr>`,
   feed: (r) => `<tr>
     <td>${fmtDate(r.date)}</td><td>${esc(r.feedType || "—")}</td><td>${fmtNum(r.quantityKg)}</td>
     <td>${esc(r.group || "—")}</td><td>${r.cost ? "₦" + fmtNum(r.cost) : "—"}</td>
@@ -356,8 +395,9 @@ const RENDERERS = {
     <td class="cell-notes">${esc(r.details || "—")}</td><td>${esc(shortEmail(r.author))}</td>${actionCell("activities", r.id)}</tr>`
 };
 
-const COLSPAN = { livestock: 8, feed: 7, births: 8, activities: 6 };
+const COLSPAN = { goats: 7, cattle: 7, crops: 8, transactions: 7, feed: 7, births: 8, activities: 6 };
 const shortEmail = (e) => e ? String(e).split("@")[0] : "—";
+const cropBadge = (s) => ({ growing: "active", harvested: "sold", planned: "deceased", failed: "expense" })[(s || "planned").toLowerCase()] || "deceased";
 
 function renderCollection(coll) {
   const tbody = $("#" + coll + "Table tbody");
@@ -378,17 +418,47 @@ function renderCollection(coll) {
 
 function sortForDisplay(coll, rows) {
   const arr = rows.slice();
-  if (coll === "livestock") return arr; // keep createdAt order
-  arr.sort((a, b) => String(b.date || "").localeCompare(String(a.date || "")));
+  if (coll === "goats" || coll === "cattle") return arr; // keep createdAt order
+  const dateKey = coll === "crops" ? "plantingDate" : "date";
+  arr.sort((a, b) => String(b[dateKey] || "").localeCompare(String(a[dateKey] || "")));
   return arr;
 }
 
+const naira = (n) => "₦" + fmtNum(Math.abs(Number(n) || 0));
+
+function monthTotals(rows, month) {
+  let income = 0, expense = 0;
+  rows.forEach((t) => {
+    if (month && !(t.date || "").startsWith(month)) return;
+    const amt = Number(t.amount) || 0;
+    if (t.type === "Income") income += amt; else expense += amt;
+  });
+  return { income, expense, net: income - expense };
+}
+
 function renderOverview() {
-  const active = state.livestock.filter((a) => (a.status || "Active") === "Active");
-  $("#kpiLivestock").textContent = active.length;
-  $("#kpiBirths").textContent = state.births.filter((b) => (b.date || "").startsWith(thisMonth())).length;
-  $("#kpiFeed").textContent = state.feed.filter((f) => (f.date || "").startsWith(thisMonth())).length;
-  $("#kpiActivities").textContent = state.activities.filter((a) => (a.date || "").startsWith(thisMonth())).length;
+  const goats = state.goats.filter((a) => (a.status || "Active") === "Active").length;
+  const cattle = state.cattle.filter((a) => (a.status || "Active") === "Active").length;
+  const growing = state.crops.filter((c) => (c.status || "") === "Growing").length;
+  const m = monthTotals(state.transactions, thisMonth());
+
+  $("#kpiGoats").textContent = goats;
+  $("#kpiCattle").textContent = cattle;
+  $("#kpiCrops").textContent = growing;
+  const net = $("#kpiNet");
+  net.textContent = (m.net < 0 ? "−" : "") + naira(m.net);
+  net.style.color = m.net < 0 ? "#c0392b" : "";
+
+  // finance summary panel
+  const fs = $("#financeSummary");
+  if (!state.transactions.length) {
+    fs.innerHTML = '<p class="empty">No transactions recorded yet.</p>';
+  } else {
+    fs.innerHTML =
+      `<div class="fin-row"><span>Income</span><span class="amount-in">+${naira(m.income)}</span></div>
+       <div class="fin-row"><span>Expenses</span><span class="amount-out">−${naira(m.expense)}</span></div>
+       <div class="fin-row fin-net"><span>Net</span><span class="${m.net < 0 ? "amount-out" : "amount-in"}">${m.net < 0 ? "−" : ""}${naira(m.net)}</span></div>`;
+  }
 
   // recent activities (top 5 by date)
   const recent = state.activities.slice().sort((a, b) => String(b.date || "").localeCompare(String(a.date || ""))).slice(0, 5);
@@ -398,17 +468,18 @@ function renderOverview() {
      <span class="ml-date">${fmtDate(a.date)} · ${esc(shortEmail(a.author))}</span></li>`).join("")
     : '<li class="empty">No activity logged yet.</li>';
 
-  // herd breakdown by type
-  const byType = {};
-  active.forEach((a) => { const t = a.type || "Other"; byType[t] = (byType[t] || 0) + 1; });
-  const total = active.length;
-  const bd = $("#herdBreakdown");
-  const types = Object.keys(byType).sort((a, b) => byType[b] - byType[a]);
-  bd.innerHTML = types.length ? types.map((t) =>
-    `<div class="bk-row"><span style="min-width:70px">${esc(t)}</span>
-     <span class="bk-bar"><span class="bk-fill" style="width:${total ? Math.round(byType[t] / total * 100) : 0}%"></span></span>
-     <span class="bk-count">${byType[t]}</span></div>`).join("")
-    : '<p class="empty">No livestock added yet.</p>';
+  renderLedgerTotals();
+}
+
+function renderLedgerTotals() {
+  const el = $("#ledgerTotals");
+  if (!el) return;
+  const all = monthTotals(state.transactions, null);
+  if (!state.transactions.length) { el.innerHTML = ""; return; }
+  el.innerHTML =
+    `<div class="ltotal"><span class="lt-label">Total income</span><span class="lt-val amount-in">+${naira(all.income)}</span></div>
+     <div class="ltotal"><span class="lt-label">Total expenses</span><span class="lt-val amount-out">−${naira(all.expense)}</span></div>
+     <div class="ltotal lt-net"><span class="lt-label">Net balance</span><span class="lt-val ${all.net < 0 ? "amount-out" : "amount-in"}">${all.net < 0 ? "−" : ""}${naira(all.net)}</span></div>`;
 }
 
 /* ---- go ---- */

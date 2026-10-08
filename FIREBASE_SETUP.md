@@ -47,6 +47,13 @@ Suggested accounts:
 Reload `portal.html`. The banner changes from **Demo** to **Live**, and everyone
 who signs in shares the same farm records in real time.
 
+### ⚠️ If you add new portal features later
+When new record types are added (the portal now covers **goats, cattle, crops,
+transactions, feed, births and activities**), re-publish the rules from
+`firestore.rules` (**Firestore Database → Rules → Publish**). The current rules
+already allow any signed-in team member to use every collection, so you only
+re-publish if you ever replace that file.
+
 ### Notes
 - The API key in `firebase-config.js` is **safe to be public** — Firebase secures
   your data with the rules in `firestore.rules`, not by hiding the key.

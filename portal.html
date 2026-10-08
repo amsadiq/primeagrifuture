@@ -74,7 +74,10 @@
       <!-- Sidebar nav -->
       <nav class="sidebar" id="sidebar">
         <button class="side-link active" data-view="overview"><span class="side-ico">📊</span>Overview</button>
-        <button class="side-link" data-view="livestock"><span class="side-ico">🐐</span>Livestock</button>
+        <button class="side-link" data-view="goats"><span class="side-ico">🐐</span>Goats</button>
+        <button class="side-link" data-view="cattle"><span class="side-ico">🐄</span>Cattle</button>
+        <button class="side-link" data-view="crops"><span class="side-ico">🌱</span>Crops</button>
+        <button class="side-link" data-view="transactions"><span class="side-ico">💰</span>Transactions</button>
         <button class="side-link" data-view="feed"><span class="side-ico">🌾</span>Feed Log</button>
         <button class="side-link" data-view="births"><span class="side-ico">🍼</span>Births</button>
         <button class="side-link" data-view="activities"><span class="side-ico">📋</span>Activity Log</button>
@@ -86,33 +89,76 @@
         <section class="view active" data-view="overview">
           <div class="view-head"><h1>Farm Overview</h1><p class="view-sub" id="overviewDate"></p></div>
           <div class="kpi-row">
-            <div class="kpi"><span class="kpi-num" id="kpiLivestock">0</span><span class="kpi-label">Active livestock</span></div>
-            <div class="kpi"><span class="kpi-num" id="kpiBirths">0</span><span class="kpi-label">Births this month</span></div>
-            <div class="kpi"><span class="kpi-num" id="kpiFeed">0</span><span class="kpi-label">Feed entries this month</span></div>
-            <div class="kpi"><span class="kpi-num" id="kpiActivities">0</span><span class="kpi-label">Activities this month</span></div>
+            <div class="kpi"><span class="kpi-num" id="kpiGoats">0</span><span class="kpi-label">Active goats</span></div>
+            <div class="kpi"><span class="kpi-num" id="kpiCattle">0</span><span class="kpi-label">Active cattle</span></div>
+            <div class="kpi"><span class="kpi-num" id="kpiCrops">0</span><span class="kpi-label">Crops growing</span></div>
+            <div class="kpi"><span class="kpi-num" id="kpiNet">₦0</span><span class="kpi-label">Net this month</span></div>
           </div>
           <div class="overview-cols">
+            <div class="panel">
+              <h3>This month's finances</h3>
+              <div id="financeSummary" class="finance-summary"><p class="empty">No transactions recorded yet.</p></div>
+            </div>
             <div class="panel">
               <h3>Recent activity</h3>
               <ul class="mini-list" id="recentActivities"><li class="empty">No activity logged yet.</li></ul>
             </div>
-            <div class="panel">
-              <h3>Herd by type</h3>
-              <div id="herdBreakdown" class="breakdown"><p class="empty">No livestock added yet.</p></div>
-            </div>
           </div>
         </section>
 
-        <!-- LIVESTOCK -->
-        <section class="view" data-view="livestock">
+        <!-- GOATS -->
+        <section class="view" data-view="goats">
           <div class="view-head">
-            <div><h1>Livestock</h1><p class="view-sub">Every animal in the herd.</p></div>
-            <button class="btn btn-primary" data-add="livestock">+ Add animal</button>
+            <div><h1>Goats</h1><p class="view-sub">Every goat in the herd.</p></div>
+            <button class="btn btn-primary" data-add="goats">+ Add goat</button>
           </div>
           <div class="table-wrap">
-            <table class="data-table" id="livestockTable">
-              <thead><tr><th>Tag</th><th>Name</th><th>Type</th><th>Breed</th><th>Sex</th><th>Date of birth</th><th>Status</th><th></th></tr></thead>
-              <tbody><tr class="empty-row"><td colspan="8">No animals yet. Click “Add animal”.</td></tr></tbody>
+            <table class="data-table" id="goatsTable">
+              <thead><tr><th>Tag</th><th>Name</th><th>Breed</th><th>Sex</th><th>Date of birth</th><th>Status</th><th></th></tr></thead>
+              <tbody><tr class="empty-row"><td colspan="7">No goats yet. Click “Add goat”.</td></tr></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- CATTLE -->
+        <section class="view" data-view="cattle">
+          <div class="view-head">
+            <div><h1>Cattle</h1><p class="view-sub">Every head of cattle in the herd.</p></div>
+            <button class="btn btn-primary" data-add="cattle">+ Add cattle</button>
+          </div>
+          <div class="table-wrap">
+            <table class="data-table" id="cattleTable">
+              <thead><tr><th>Tag</th><th>Name</th><th>Breed</th><th>Sex</th><th>Date of birth</th><th>Status</th><th></th></tr></thead>
+              <tbody><tr class="empty-row"><td colspan="7">No cattle yet. Click “Add cattle”.</td></tr></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- CROPS -->
+        <section class="view" data-view="crops">
+          <div class="view-head">
+            <div><h1>Crops</h1><p class="view-sub">Plots, planting and harvest records.</p></div>
+            <button class="btn btn-primary" data-add="crops">+ Add crop</button>
+          </div>
+          <div class="table-wrap">
+            <table class="data-table" id="cropsTable">
+              <thead><tr><th>Crop</th><th>Variety</th><th>Area (ha)</th><th>Planted</th><th>Expected harvest</th><th>Status</th><th>Yield (kg)</th><th></th></tr></thead>
+              <tbody><tr class="empty-row"><td colspan="8">No crops yet. Click “Add crop”.</td></tr></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- TRANSACTIONS -->
+        <section class="view" data-view="transactions">
+          <div class="view-head">
+            <div><h1>Transactions</h1><p class="view-sub">Every income and expense on the farm.</p></div>
+            <button class="btn btn-primary" data-add="transactions">+ Record transaction</button>
+          </div>
+          <div class="ledger-totals" id="ledgerTotals"></div>
+          <div class="table-wrap">
+            <table class="data-table" id="transactionsTable">
+              <thead><tr><th>Date</th><th>Type</th><th>Category</th><th>Description</th><th>Amount (₦)</th><th>Method</th><th></th></tr></thead>
+              <tbody><tr class="empty-row"><td colspan="7">No transactions yet. Click “Record transaction”.</td></tr></tbody>
             </table>
           </div>
         </section>

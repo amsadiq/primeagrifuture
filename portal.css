@@ -118,8 +118,26 @@ img { display:block; max-width:100%; }
 .badge-deceased { background:rgba(120,120,120,.16); color:#555; }
 .badge-m { background:rgba(37,99,180,.12); color:#1d5bb5; }
 .badge-f { background:rgba(221,42,123,.12); color:#b31d6b; }
+.badge-expense { background:rgba(192,57,43,.12); color:#c0392b; }
 .row-actions { white-space:nowrap; text-align:right; }
 .cell-notes { max-width:220px; color:var(--muted); }
+.amount { font-weight:700; white-space:nowrap; }
+.amount-in { color:var(--green-600); }
+.amount-out { color:#c0392b; }
+
+/* Finance summary (overview panel) */
+.finance-summary .fin-row { display:flex; justify-content:space-between; align-items:center; padding:.65rem 0; border-bottom:1px dashed var(--line); font-size:.95rem; }
+.finance-summary .fin-row:last-child { border-bottom:0; }
+.finance-summary .fin-row span:last-child { font-weight:700; font-family:"Fraunces",serif; }
+.finance-summary .fin-net { border-top:2px solid var(--cream-2); margin-top:.3rem; padding-top:.8rem; font-size:1.08rem; }
+
+/* Ledger totals (transactions view) */
+.ledger-totals { display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; margin-bottom:1.3rem; }
+.ledger-totals:empty { display:none; }
+.ltotal { background:#fff; border:1px solid var(--line); border-radius:var(--radius-sm); padding:1rem 1.2rem; box-shadow:var(--shadow-sm); }
+.lt-net { border-color:rgba(31,138,76,.35); }
+.lt-label { display:block; font-size:.74rem; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; }
+.lt-val { display:block; font-family:"Fraunces",serif; font-weight:700; font-size:1.45rem; margin-top:.3rem; line-height:1; }
 
 /* Modal */
 .modal { position:fixed; inset:0; z-index:50; display:flex; align-items:center; justify-content:center; padding:1rem; }
@@ -152,6 +170,7 @@ img { display:block; max-width:100%; }
 }
 @media (max-width:480px) {
   .kpi-row { grid-template-columns:1fr 1fr; }
+  .ledger-totals { grid-template-columns:1fr; }
   .modal-grid2 { grid-template-columns:1fr; }
   .user-chip #userEmail { max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 }

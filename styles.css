@@ -212,7 +212,9 @@ p { color: var(--muted); }
     linear-gradient(135deg, var(--cream) 0%, var(--cream-2) 100%);
   position: relative; transition: transform .4s var(--ease);
 }
-.gallery-item:hover .gallery-ph { transform: scale(1.05); }
+.gallery-img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .4s var(--ease); }
+.gallery-item:hover .gallery-ph,
+.gallery-item:hover .gallery-img { transform: scale(1.05); }
 .gallery-item figcaption {
   position: absolute; left: 0; right: 0; bottom: 0; padding: .7rem .9rem;
   background: linear-gradient(to top, rgba(10,47,26,.85), transparent);

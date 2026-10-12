@@ -65,6 +65,7 @@
         <span class="topbar-badge" id="modeBadge">Portal</span>
       </div>
       <div class="topbar-right">
+        <span class="role-badge role-viewer" id="roleBadge">View only</span>
         <span class="user-chip"><span class="user-dot"></span><span id="userEmail">—</span></span>
         <button class="btn btn-ghost btn-sm" id="logoutBtn">Sign out</button>
       </div>
@@ -81,6 +82,7 @@
         <button class="side-link" data-view="feed"><span class="side-ico">🌾</span>Feed Log</button>
         <button class="side-link" data-view="births"><span class="side-ico">🍼</span>Births</button>
         <button class="side-link" data-view="activities"><span class="side-ico">📋</span>Activity Log</button>
+        <button class="side-link" data-view="team" hidden><span class="side-ico">👥</span>Team &amp; Roles</button>
       </nav>
 
       <main class="content" id="content">
@@ -203,6 +205,26 @@
               <tbody><tr class="empty-row"><td colspan="6">No entries yet.</td></tr></tbody>
             </table>
           </div>
+        </section>
+
+        <!-- TEAM & ROLES (admins only) -->
+        <section class="view" data-view="team">
+          <div class="view-head">
+            <div><h1>Team &amp; Roles</h1><p class="view-sub">Who can access what. Everyone can view; access to edit depends on role.</p></div>
+            <button class="btn btn-primary" data-add="roles">+ Add team member</button>
+          </div>
+          <div class="role-legend">
+            <span><strong>Admin</strong> — full access to everything</span>
+            <span><strong>Finance</strong> — can edit Transactions; views the rest</span>
+            <span><strong>View only</strong> — can view but not change anything</span>
+          </div>
+          <div class="table-wrap">
+            <table class="data-table" id="rolesTable">
+              <thead><tr><th>Name</th><th>Email (login)</th><th>Role</th><th></th></tr></thead>
+              <tbody><tr class="empty-row"><td colspan="4">No roles assigned yet. Add your team members here.</td></tr></tbody>
+            </table>
+          </div>
+          <p class="view-note">The email must match exactly the account you created in Firebase Authentication. A person's role takes effect the next time they sign in.</p>
         </section>
 
       </main>

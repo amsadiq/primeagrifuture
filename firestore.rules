@@ -1,18 +1,52 @@
 rules_version = '2';
 // ============================================================
 //  Firestore security rules for the Prime AgriFuture portal
-//  Paste these in: Firebase Console → Firestore Database → Rules → Publish
+//  Paste in: Firebase Console → Firestore Database → Rules → Publish
 //
-//  Policy: only SIGNED-IN users (your partners & founders, whose accounts
-//  you create under Authentication → Users) can read or write farm records.
-//  The public website cannot touch this data. This covers every collection
-//  the portal uses — goats, cattle, crops, transactions, feed, births,
-//  activities — and any added later.
+//  ROLE-BASED ACCESS
+//  • Every signed-in team member can VIEW all records.
+//  • admin   → can edit everything (co-founders).
+//  • finance → can edit Transactions only (CFO); views the rest.
+//  • viewer  → view only (everyone else).
+//
+//  Roles live in a `roles` collection: one document per person, the
+//  document ID is their lowercase login email, with a field `role`
+//  set to "admin", "finance" or "viewer". Manage these from the portal's
+//  "Team & Roles" screen (admins only), or in this console.
+//
+//  FIRST-TIME SETUP: create the first admin here manually —
+//  Firestore → Start collection `roles` → Document ID = your email
+//  (lowercase) → field  role (string) = admin. Then you can assign the
+//  rest from inside the portal.
 // ============================================================
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /{document=**} {
-      allow read, write: if request.auth != null;
+
+    function signedIn() { return request.auth != null; }
+    function myRole() {
+      return signedIn() && exists(/databases/$(database)/documents/roles/$(request.auth.token.email))
+        ? get(/databases/$(database)/documents/roles/$(request.auth.token.email)).data.role
+        : "viewer";
+    }
+    function isAdmin()   { return myRole() == "admin"; }
+    function isFinance() { return myRole() == "finance"; }
+
+    // Role assignments: anyone signed-in may read (to learn their own role); only admins may change.
+    match /roles/{id} {
+      allow read: if signedIn();
+      allow write: if isAdmin();
+    }
+
+    // Transactions: admins and finance can edit.
+    match /transactions/{id} {
+      allow read: if signedIn();
+      allow write: if isAdmin() || isFinance();
+    }
+
+    // All other farm collections (goats, cattle, crops, feed, births, activities): admins edit.
+    match /{coll}/{id} {
+      allow read: if signedIn();
+      allow write: if isAdmin();
     }
   }
 }

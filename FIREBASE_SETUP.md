@@ -37,22 +37,41 @@ For each partner/founder:
 2. Enter their email + a starting password → **Add user**.
 3. Share the email/password with them (they can change the password later).
 
-Suggested accounts:
+Suggested accounts (use **lowercase** emails):
 - Parry Hedima (CEO), Sadiq Abubakar (COO), Fred Hosea (CFO),
   David Ajoma (Risk & Compliance), Alwan Nasir (Plans & Strategy).
+
+## 6. Roles — who can edit what
+The portal has three access levels:
+- **admin** — full access to everything (the co-founders).
+- **finance** — can edit **Transactions**; views everything else (the CFO).
+- **viewer** — view-only everywhere (everyone else). This is the default for
+  any signed-in user with no role assigned.
+
+**Bootstrap the first admin** (one-time, in the console):
+1. **Firestore Database → Start collection** → Collection ID: `roles`.
+2. **Document ID** = your login email in lowercase (e.g. `sadiq@...`).
+3. Add a field: **`role`** (string) = `admin` → **Save**.
+
+Then sign in to the portal as that admin and open **Team & Roles** in the
+sidebar to assign everyone else — no more console needed:
+- Parry & Sadiq → **admin**
+- Fred → **finance**
+- David & Alwan → **viewer**
+
+> Each person's role takes effect the next time they sign in. Emails must match
+> their login exactly (lowercase).
 
 ---
 
 ## Done ✅
 Reload `portal.html`. The banner changes from **Demo** to **Live**, and everyone
-who signs in shares the same farm records in real time.
+who signs in shares the same farm records in real time, with access set by role.
 
-### ⚠️ If you add new portal features later
-When new record types are added (the portal now covers **goats, cattle, crops,
-transactions, feed, births and activities**), re-publish the rules from
-`firestore.rules` (**Firestore Database → Rules → Publish**). The current rules
-already allow any signed-in team member to use every collection, so you only
-re-publish if you ever replace that file.
+### ⚠️ If you ever replace the rules file
+The current `firestore.rules` already enforces the roles above and covers every
+collection. You only re-publish (**Firestore Database → Rules → Publish**) if you
+change that file.
 
 ### Notes
 - The API key in `firebase-config.js` is **safe to be public** — Firebase secures

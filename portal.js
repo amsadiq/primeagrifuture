@@ -77,8 +77,26 @@ const SCHEMAS = {
       { k: "title", label: "Title", type: "text", required: true, ph: "Short summary" },
       { k: "details", label: "Details", type: "textarea", ph: "What happened?" }
     ]
+  },
+  roles: {
+    singular: "team member",
+    idField: "email",
+    fields: [
+      { k: "email", label: "Email (their login)", type: "email", required: true, ph: "person@primeagrifuture.com" },
+      { k: "role", label: "Role", type: "select", required: true, options: ["admin", "finance", "viewer"] },
+      { k: "name", label: "Name (optional)", type: "text", ph: "e.g. Fred Hosea" }
+    ]
   }
 };
+
+// Role → what it can edit. Everyone signed-in can VIEW everything.
+const ROLE_LABELS = { admin: "Admin", finance: "Finance", viewer: "View only" };
+function canWrite(coll) {
+  if (currentRole === "admin") return true;
+  if (currentRole === "finance") return coll === "transactions";
+  return false;
+}
+const isAdmin = () => currentRole === "admin";
 
 /* ============================================================
    DATA STORE  (Firebase  OR  local demo)
@@ -89,7 +107,7 @@ async function makeFirebaseStore() {
   const { initializeApp } = await import(`https://www.gstatic.com/firebasejs/${FB_VERSION}/firebase-app.js`);
   const { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } =
     await import(`https://www.gstatic.com/firebasejs/${FB_VERSION}/firebase-auth.js`);
-  const { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy, serverTimestamp } =
+  const { getFirestore, collection, addDoc, setDoc, getDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy, serverTimestamp } =
     await import(`https://www.gstatic.com/firebasejs/${FB_VERSION}/firebase-firestore.js`);
 
   const app = initializeApp(firebaseConfig);
@@ -101,13 +119,21 @@ async function makeFirebaseStore() {
     onAuth: (cb) => onAuthStateChanged(auth, cb),
     signIn: (e, p) => signInWithEmailAndPassword(auth, e, p),
     signOut: () => signOut(auth),
-    watch: (coll, cb) => {
-      const q = query(collection(db, coll), orderBy("createdAt", "desc"));
+    getRole: async (email) => {
+      try {
+        const s = await getDoc(doc(db, "roles", email.toLowerCase()));
+        return s.exists() ? (s.data().role || null) : null;
+      } catch (e) { console.error(e); return null; }
+    },
+    watch: (coll, cb, orderField = "createdAt") => {
+      const base = collection(db, coll);
+      const q = orderField ? query(base, orderBy(orderField, "desc")) : base;
       return onSnapshot(q,
         (snap) => cb(snap.docs.map((d) => ({ id: d.id, ...d.data() }))),
         (err) => { console.error(err); toast("Could not load " + coll + ": " + err.message, true); });
     },
     add: (coll, data) => addDoc(collection(db, coll), { ...data, createdAt: serverTimestamp() }),
+    set: (coll, id, data) => setDoc(doc(db, coll, id), { ...data, updatedAt: serverTimestamp() }, { merge: true }),
     update: (coll, id, data) => updateDoc(doc(db, coll, id), data),
     remove: (coll, id) => deleteDoc(doc(db, coll, id))
   };
@@ -142,8 +168,10 @@ function makeDemoStore() {
       }
     }),
     signOut: () => { user = null; sessionStorage.removeItem("paf_demo_user"); authCb && authCb(null); return Promise.resolve(); },
+    getRole: (email) => { const r = read("roles").find((x) => x.id === email.toLowerCase()); return r ? (r.role || null) : null; },
     watch: (c, cb) => { (subs[c] = subs[c] || []).push(cb); notify(c); return () => {}; },
     add: (c, data) => { const a = read(c); a.push({ id: "d" + Date.now() + Math.random().toString(36).slice(2, 6), createdAt: Date.now(), ...data }); write(c, a); notify(c); return Promise.resolve(); },
+    set: (c, id, data) => { const a = read(c); const i = a.findIndex((x) => x.id === id); if (i >= 0) a[i] = { ...a[i], ...data }; else a.push({ id, createdAt: Date.now(), ...data }); write(c, a); notify(c); return Promise.resolve(); },
     update: (c, id, data) => { write(c, read(c).map((x) => (x.id === id ? { ...x, ...data } : x))); notify(c); return Promise.resolve(); },
     remove: (c, id) => { write(c, read(c).filter((x) => x.id !== id)); notify(c); return Promise.resolve(); }
   };
@@ -152,8 +180,9 @@ function makeDemoStore() {
 /* ============================================================
    STATE + HELPERS
    ============================================================ */
-const state = { goats: [], cattle: [], crops: [], transactions: [], feed: [], births: [], activities: [] };
+const state = { goats: [], cattle: [], crops: [], transactions: [], feed: [], births: [], activities: [], roles: [] };
 let currentUser = null;
+let currentRole = "viewer";
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
 const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (m) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m]));
@@ -201,12 +230,20 @@ function showLogin() {
 }
 
 let subscribed = false;
-function enterApp(user) {
+async function enterApp(user) {
   $("#loginView").hidden = true;
   $("#appView").hidden = false;
   $("#userEmail").textContent = user.email || "Signed in";
   $("#modeBadge").textContent = Store.mode === "firebase" ? "Live" : "Demo";
   $("#overviewDate").textContent = new Date().toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+
+  // Resolve the signed-in user's role
+  let role = null;
+  try { role = await Store.getRole((user.email || "").toLowerCase()); } catch (e) { console.error(e); }
+  // Default: demo user is admin (so you can try everything); real users with no
+  // role assigned yet are view-only until an admin assigns them one.
+  currentRole = role || (Store.mode === "demo" ? "admin" : "viewer");
+  applyRoleToUI();
 
   if (!subscribed) {
     subscribed = true;
@@ -217,7 +254,21 @@ function enterApp(user) {
         renderOverview();
       });
     });
+    if (isAdmin()) {
+      Store.watch("roles", (rows) => { state.roles = rows; renderCollection("roles"); }, null);
+    }
   }
+}
+
+function applyRoleToUI() {
+  // Role badge in the top bar
+  const rb = $("#roleBadge");
+  if (rb) { rb.textContent = ROLE_LABELS[currentRole] || "View only"; rb.className = "role-badge role-" + currentRole; }
+  // Show the Team link only for admins
+  const teamLink = $('.side-link[data-view="team"]');
+  if (teamLink) teamLink.hidden = !isAdmin();
+  // Show / hide every "Add" button by write permission
+  $$("[data-add]").forEach((b) => { b.hidden = !canWrite(b.dataset.add); });
 }
 
 /* ============================================================
@@ -245,7 +296,11 @@ function wireUI() {
   });
 
   // Logout
-  $("#logoutBtn").addEventListener("click", async () => { await Store.signOut(); toast("Signed out."); });
+  $("#logoutBtn").addEventListener("click", async () => {
+    try { await Store.signOut(); } catch (e) {}
+    // Reload so the next sign-in starts from a clean slate (fresh role, views, data)
+    location.reload();
+  });
 
   // Sidebar navigation
   $$(".side-link").forEach((b) => b.addEventListener("click", () => switchView(b.dataset.view)));
@@ -325,7 +380,14 @@ async function onModalSubmit(e) {
   const btn = $("#modalSave");
   btn.disabled = true; btn.textContent = "Saving…";
   try {
-    if (modalCtx.id) {
+    const idField = schema.idField; // e.g. roles are keyed by email
+    if (idField) {
+      const id = String(data[idField] || "").toLowerCase();
+      if (!id) { toast("Please fill in “" + idField + "”.", true); btn.disabled = false; btn.textContent = "Save"; return; }
+      data[idField] = id;
+      await Store.set(modalCtx.coll, id, data);
+      toast("Saved.");
+    } else if (modalCtx.id) {
       await Store.update(modalCtx.coll, modalCtx.id, data);
       toast("Saved changes.");
     } else {
@@ -354,6 +416,7 @@ async function removeRecord(coll, id) {
 const sexBadge = (s) => s === "Male" ? '<span class="badge badge-m">Male</span>' : s === "Female" ? '<span class="badge badge-f">Female</span>' : (s ? esc(s) : "—");
 
 function actionCell(coll, id) {
+  if (!canWrite(coll)) return `<td class="row-actions"></td>`;
   return `<td class="row-actions">
     <button class="btn-danger" data-edit="${coll}" data-id="${id}">Edit</button>
     <button class="btn-danger" data-del="${coll}" data-id="${id}">Delete</button>
@@ -392,10 +455,14 @@ const RENDERERS = {
     <td>${fmtNum(r.weightKg)}</td><td class="cell-notes">${esc(r.notes || "—")}</td>${actionCell("births", r.id)}</tr>`,
   activities: (r) => `<tr>
     <td>${fmtDate(r.date)}</td><td>${esc(r.category || "—")}</td><td>${esc(r.title || "—")}</td>
-    <td class="cell-notes">${esc(r.details || "—")}</td><td>${esc(shortEmail(r.author))}</td>${actionCell("activities", r.id)}</tr>`
+    <td class="cell-notes">${esc(r.details || "—")}</td><td>${esc(shortEmail(r.author))}</td>${actionCell("activities", r.id)}</tr>`,
+  roles: (r) => `<tr>
+    <td>${esc(r.name || "—")}</td><td>${esc(r.email || r.id || "—")}</td>
+    <td><span class="role-badge role-${esc(r.role || "viewer")}">${esc(ROLE_LABELS[r.role] || r.role || "View only")}</span></td>
+    ${actionCell("roles", r.id)}</tr>`
 };
 
-const COLSPAN = { goats: 7, cattle: 7, crops: 8, transactions: 7, feed: 7, births: 8, activities: 6 };
+const COLSPAN = { goats: 7, cattle: 7, crops: 8, transactions: 7, feed: 7, births: 8, activities: 6, roles: 4 };
 const shortEmail = (e) => e ? String(e).split("@")[0] : "—";
 const cropBadge = (s) => ({ growing: "active", harvested: "sold", planned: "deceased", failed: "expense" })[(s || "planned").toLowerCase()] || "deceased";
 
@@ -419,6 +486,7 @@ function renderCollection(coll) {
 function sortForDisplay(coll, rows) {
   const arr = rows.slice();
   if (coll === "goats" || coll === "cattle") return arr; // keep createdAt order
+  if (coll === "roles") { arr.sort((a, b) => String(a.email || a.id || "").localeCompare(String(b.email || b.id || ""))); return arr; }
   const dateKey = coll === "crops" ? "plantingDate" : "date";
   arr.sort((a, b) => String(b[dateKey] || "").localeCompare(String(a[dateKey] || "")));
   return arr;

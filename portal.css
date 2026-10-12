@@ -149,6 +149,8 @@ img { display:block; max-width:100%; }
 .badge-active { background:rgba(31,138,76,.14); color:var(--green-700); }
 .badge-sold { background:rgba(201,162,39,.16); color:#8a6d0f; }
 .badge-deceased { background:rgba(120,120,120,.16); color:#555; }
+.badge-pregnant { background:rgba(221,42,123,.12); color:#b31d6b; }
+.badge-milking-doe, .badge-milking-cow { background:rgba(37,99,180,.12); color:#1d5bb5; }
 .badge-m { background:rgba(37,99,180,.12); color:#1d5bb5; }
 .badge-f { background:rgba(221,42,123,.12); color:#b31d6b; }
 .badge-expense { background:rgba(192,57,43,.12); color:#c0392b; }

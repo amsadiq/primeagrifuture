@@ -8,19 +8,19 @@ const FB_VERSION = "10.12.2";
 const COLLECTIONS = ["goats", "cattle", "crops", "transactions", "feed", "births", "activities"];
 
 /* ---------- Field schemas (drive forms + validation) ---------- */
-const ANIMAL_FIELDS = (tagPh) => [
+const ANIMAL_FIELDS = (tagPh, statusOptions) => [
   { k: "tagId", label: "Tag ID", type: "text", required: true, half: true, ph: tagPh },
   { k: "name", label: "Name", type: "text", half: true },
   { k: "breed", label: "Breed", type: "text", half: true, ph: "e.g. Red Sokoto" },
   { k: "sex", label: "Sex", type: "select", required: true, half: true, options: ["Female", "Male"] },
   { k: "dob", label: "Date of birth", type: "date", half: true },
-  { k: "status", label: "Status", type: "select", required: true, half: true, options: ["Active", "Sold", "Deceased"] },
+  { k: "status", label: "Status", type: "select", required: true, half: true, options: statusOptions },
   { k: "notes", label: "Notes", type: "textarea" }
 ];
 
 const SCHEMAS = {
-  goats: { singular: "goat", fields: ANIMAL_FIELDS("e.g. PAF-G014") },
-  cattle: { singular: "head of cattle", fields: ANIMAL_FIELDS("e.g. PAF-C007") },
+  goats: { singular: "goat", fields: ANIMAL_FIELDS("e.g. PAF-G014", ["Active", "Pregnant", "Milking Doe", "Sold", "Deceased"]) },
+  cattle: { singular: "head of cattle", fields: ANIMAL_FIELDS("e.g. PAF-C007", ["Active", "Pregnant", "Milking Cow", "Sold", "Deceased"]) },
   crops: {
     singular: "crop",
     fields: [
@@ -522,7 +522,7 @@ const animalRow = (coll) => (r) => `<tr>
     <td><span class="tag-pill">${esc(r.tagId || "—")}</span></td>
     <td>${esc(r.name || "—")}</td><td>${esc(r.breed || "—")}</td>
     <td>${sexBadge(r.sex)}</td><td>${fmtDate(r.dob)}</td>
-    <td><span class="badge badge-${(r.status || "active").toLowerCase()}">${esc(r.status || "Active")}</span></td>
+    <td><span class="badge badge-${(r.status || "active").toLowerCase().replace(/\s+/g, "-")}">${esc(r.status || "Active")}</span></td>
     ${actionCell(coll, r.id)}</tr>`;
 
 const RENDERERS = {
@@ -600,8 +600,9 @@ function monthTotals(rows, month) {
 }
 
 function renderOverview() {
-  const goats = state.goats.filter((a) => (a.status || "Active") === "Active").length;
-  const cattle = state.cattle.filter((a) => (a.status || "Active") === "Active").length;
+  const inHerd = (a) => !["Sold", "Deceased"].includes(a.status || "Active");
+  const goats = state.goats.filter(inHerd).length;
+  const cattle = state.cattle.filter(inHerd).length;
   const growing = state.crops.filter((c) => (c.status || "") === "Growing").length;
   const m = monthTotals(state.transactions, thisMonth());
 

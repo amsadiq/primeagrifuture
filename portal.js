@@ -83,14 +83,16 @@ const SCHEMAS = {
     idField: "email",
     fields: [
       { k: "email", label: "Email (their login)", type: "email", required: true, ph: "person@primeagrifuture.com" },
-      { k: "role", label: "Role", type: "select", required: true, options: ["admin", "finance", "viewer"] },
+      { k: "role", label: "Role", type: "select", required: true, options: ["admin", "finance", "viewer", "pending"] },
       { k: "name", label: "Name (optional)", type: "text", ph: "e.g. Fred Hosea" }
     ]
   }
 };
 
-// Role → what it can edit. Everyone signed-in can VIEW everything.
-const ROLE_LABELS = { admin: "Admin", finance: "Finance", viewer: "View only" };
+// Role → what it can edit. Approved users can VIEW everything.
+const ROLE_LABELS = { admin: "Admin", finance: "Finance", viewer: "View only", pending: "Pending" };
+const APPROVED_ROLES = ["admin", "finance", "viewer"];
+const isApproved = (role) => APPROVED_ROLES.includes(role);
 function canWrite(coll) {
   if (currentRole === "admin") return true;
   if (currentRole === "finance") return coll === "transactions";
@@ -105,7 +107,7 @@ let Store;
 
 async function makeFirebaseStore() {
   const { initializeApp } = await import(`https://www.gstatic.com/firebasejs/${FB_VERSION}/firebase-app.js`);
-  const { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } =
+  const { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, signOut, onAuthStateChanged } =
     await import(`https://www.gstatic.com/firebasejs/${FB_VERSION}/firebase-auth.js`);
   const { getFirestore, collection, addDoc, setDoc, getDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy, serverTimestamp } =
     await import(`https://www.gstatic.com/firebasejs/${FB_VERSION}/firebase-firestore.js`);
@@ -118,6 +120,11 @@ async function makeFirebaseStore() {
     mode: "firebase",
     onAuth: (cb) => onAuthStateChanged(auth, cb),
     signIn: (e, p) => signInWithEmailAndPassword(auth, e, p),
+    signUp: async (e, p, name) => {
+      const cred = await createUserWithEmailAndPassword(auth, e, p);
+      if (name) { try { await updateProfile(cred.user, { displayName: name }); } catch (err) {} }
+      return cred.user;
+    },
     signOut: () => signOut(auth),
     getRole: async (email) => {
       try {
@@ -166,6 +173,16 @@ function makeDemoStore() {
       } else {
         rej(new Error("Invalid demo credentials. Use demo@paf.ng / demo1234."));
       }
+    }),
+    signUp: (e, p, name) => new Promise((res, rej) => {
+      const email = e.trim().toLowerCase();
+      if (!email || (p || "").length < 6) { rej(new Error("Enter an email and a password of at least 6 characters.")); return; }
+      // record a pending request and sign in as pending
+      const a = read("roles"); if (!a.find((x) => x.id === email)) { a.push({ id: email, email, name: name || "", role: "pending", createdAt: Date.now() }); write("roles", a); notify("roles"); }
+      user = { email, displayName: name || "" };
+      sessionStorage.setItem("paf_demo_user", email);
+      authCb && authCb(user);
+      res(user);
     }),
     signOut: () => { user = null; sessionStorage.removeItem("paf_demo_user"); authCb && authCb(null); return Promise.resolve(); },
     getRole: (email) => { const r = read("roles").find((x) => x.id === email.toLowerCase()); return r ? (r.role || null) : null; },
@@ -225,24 +242,38 @@ async function boot() {
 
 function showLogin() {
   $("#appView").hidden = true;
+  $("#pendingView").hidden = true;
   $("#loginView").hidden = false;
   $("#loginPassword").value = "";
 }
 
+function showPending(user) {
+  $("#loginView").hidden = true;
+  $("#appView").hidden = true;
+  $("#pendingView").hidden = false;
+  const name = (user && (user.displayName || (user.email || "").split("@")[0])) || "partner";
+  $("#pendingName").textContent = name;
+}
+
 let subscribed = false;
 async function enterApp(user) {
+  // Resolve the signed-in user's role first — decides approval
+  let role = null;
+  try { role = await Store.getRole((user.email || "").toLowerCase()); } catch (e) { console.error(e); }
+  // Demo user is admin so you can try everything. Real users are only let in
+  // once an admin has given them an approved role; otherwise they wait.
+  if (role) currentRole = role;
+  else if (Store.mode === "demo" && (user.email || "").toLowerCase() === "demo@paf.ng") currentRole = "admin";
+  else currentRole = "pending";
+
+  if (!isApproved(currentRole)) { showPending(user); return; }
+
   $("#loginView").hidden = true;
+  $("#pendingView").hidden = true;
   $("#appView").hidden = false;
   $("#userEmail").textContent = user.email || "Signed in";
   $("#modeBadge").textContent = Store.mode === "firebase" ? "Live" : "Demo";
   $("#overviewDate").textContent = new Date().toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
-
-  // Resolve the signed-in user's role
-  let role = null;
-  try { role = await Store.getRole((user.email || "").toLowerCase()); } catch (e) { console.error(e); }
-  // Default: demo user is admin (so you can try everything); real users with no
-  // role assigned yet are view-only until an admin assigns them one.
-  currentRole = role || (Store.mode === "demo" ? "admin" : "viewer");
   applyRoleToUI();
 
   if (!subscribed) {
@@ -295,12 +326,50 @@ function wireUI() {
     }
   });
 
-  // Logout
-  $("#logoutBtn").addEventListener("click", async () => {
-    try { await Store.signOut(); } catch (e) {}
-    // Reload so the next sign-in starts from a clean slate (fresh role, views, data)
-    location.reload();
+  // Toggle between sign-in and sign-up
+  const toggleAuth = (showSignup) => {
+    $("#loginForm").hidden = showSignup;
+    $("#signupForm").hidden = !showSignup;
+    $("#authTitle").textContent = showSignup ? "Request Access" : "Partner Portal";
+    $("#authSub").textContent = showSignup
+      ? "Create an account — an admin will approve it before you can access farm data."
+      : "Sign in to manage day-to-day farm operations.";
+    $("#loginStatus").textContent = ""; $("#signupStatus").textContent = "";
+  };
+  $("#showSignup").addEventListener("click", (e) => { e.preventDefault(); toggleAuth(true); });
+  $("#showLogin").addEventListener("click", (e) => { e.preventDefault(); toggleAuth(false); });
+
+  // Sign up (request access)
+  $("#signupForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const name = $("#signupName").value.trim();
+    const email = $("#signupEmail").value.trim().toLowerCase();
+    const pw = $("#signupPassword").value;
+    const status = $("#signupStatus");
+    status.textContent = "";
+    if (!name || !email) { status.textContent = "Please enter your name and email."; status.className = "login-status err"; return; }
+    if (pw.length < 6) { status.textContent = "Password must be at least 6 characters."; status.className = "login-status err"; return; }
+    const btn = $("#signupBtn");
+    btn.disabled = true; btn.textContent = "Creating…";
+    try {
+      await Store.signUp(email, pw, name);
+      // Record the pending request so an admin can approve it.
+      try { await Store.set("roles", email, { email, name, role: "pending" }); } catch (err) { console.error(err); }
+      // onAuth will fire and show the pending screen.
+    } catch (err) {
+      status.textContent = friendlySignupError(err);
+      status.className = "login-status err";
+      btn.disabled = false; btn.textContent = "Request Access";
+    }
   });
+
+  // Logout (from app or pending screen)
+  const doLogout = async () => {
+    try { await Store.signOut(); } catch (e) {}
+    location.reload(); // clean slate for the next sign-in
+  };
+  $("#logoutBtn").addEventListener("click", doLogout);
+  $("#pendingSignOut").addEventListener("click", doLogout);
 
   // Sidebar navigation
   $$(".side-link").forEach((b) => b.addEventListener("click", () => switchView(b.dataset.view)));
@@ -322,6 +391,15 @@ function friendlyAuthError(err) {
   if (c.includes("too-many-requests")) return "Too many attempts. Please try again shortly.";
   if (c.includes("invalid-email")) return "That email address looks invalid.";
   return (err && err.message) || "Sign-in failed.";
+}
+
+function friendlySignupError(err) {
+  const c = (err && err.code) || "";
+  if (c.includes("email-already-in-use")) return "An account with that email already exists — try signing in.";
+  if (c.includes("invalid-email")) return "That email address looks invalid.";
+  if (c.includes("weak-password")) return "Password is too weak — use at least 6 characters.";
+  if (c.includes("operation-not-allowed")) return "Sign-up isn't enabled yet. Contact an administrator.";
+  return (err && err.message) || "Could not create the account.";
 }
 
 function switchView(view) {

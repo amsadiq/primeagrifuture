@@ -3,49 +3,54 @@ rules_version = '2';
 //  Firestore security rules for the Prime AgriFuture portal
 //  Paste in: Firebase Console → Firestore Database → Rules → Publish
 //
-//  ROLE-BASED ACCESS
-//  • Every signed-in team member can VIEW all records.
-//  • admin   → can edit everything (co-founders).
-//  • finance → can edit Transactions only (CFO); views the rest.
-//  • viewer  → view only (everyone else).
+//  ACCESS MODEL
+//  • A new user who signs up is "pending" — NO access to farm data until an
+//    admin approves them.
+//  • Approved roles:
+//      admin   → edit everything (co-founders)
+//      finance → edit Transactions only; view the rest (CFO)
+//      viewer  → view only (everyone else)
+//  • Only approved users (admin/finance/viewer) can read farm records.
 //
-//  Roles live in a `roles` collection: one document per person, the
-//  document ID is their lowercase login email, with a field `role`
-//  set to "admin", "finance" or "viewer". Manage these from the portal's
-//  "Team & Roles" screen (admins only), or in this console.
+//  Roles live in a `roles` collection: one doc per person, the doc ID is the
+//  person's lowercase login email, with a field `role`. A new user may create
+//  their own doc but only as `pending`; only admins approve (update) or remove.
 //
-//  FIRST-TIME SETUP: create the first admin here manually —
-//  Firestore → Start collection `roles` → Document ID = your email
-//  (lowercase) → field  role (string) = admin. Then you can assign the
-//  rest from inside the portal.
+//  FIRST-TIME SETUP — create the first admin here manually:
+//    Firestore → Start collection `roles` → Document ID = your email
+//    (lowercase) → field  role (string) = admin.
 // ============================================================
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    function signedIn() { return request.auth != null; }
+    function signedIn()   { return request.auth != null; }
+    function myEmail()    { return request.auth.token.email; }
     function myRole() {
-      return signedIn() && exists(/databases/$(database)/documents/roles/$(request.auth.token.email))
-        ? get(/databases/$(database)/documents/roles/$(request.auth.token.email)).data.role
-        : "viewer";
+      return signedIn() && exists(/databases/$(database)/documents/roles/$(myEmail()))
+        ? get(/databases/$(database)/documents/roles/$(myEmail())).data.role
+        : "pending";
     }
-    function isAdmin()   { return myRole() == "admin"; }
-    function isFinance() { return myRole() == "finance"; }
+    function isAdmin()    { return myRole() == "admin"; }
+    function isFinance()  { return myRole() == "finance"; }
+    function isApproved() { return myRole() in ["admin", "finance", "viewer"]; }
 
-    // Role assignments: anyone signed-in may read (to learn their own role); only admins may change.
+    // Role docs: read only your own (admins read all). A new user may create
+    // their own doc as `pending`; only admins approve (update) or remove.
     match /roles/{id} {
-      allow read: if signedIn();
-      allow write: if isAdmin();
+      allow read:   if signedIn() && (isAdmin() || id == myEmail());
+      allow create: if isAdmin() || (signedIn() && id == myEmail() && request.resource.data.role == "pending");
+      allow update, delete: if isAdmin();
     }
 
-    // Transactions: admins and finance can edit.
+    // Transactions: admins + finance can edit; approved users can view.
     match /transactions/{id} {
-      allow read: if signedIn();
+      allow read:  if isApproved();
       allow write: if isAdmin() || isFinance();
     }
 
-    // All other farm collections (goats, cattle, crops, feed, births, activities): admins edit.
+    // All other farm collections: admins edit; approved users view.
     match /{coll}/{id} {
-      allow read: if signedIn();
+      allow read:  if isApproved();
       allow write: if isAdmin();
     }
   }

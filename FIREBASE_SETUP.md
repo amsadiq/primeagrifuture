@@ -31,33 +31,34 @@ Do these once:
 3. Open the **Rules** tab, delete what's there, paste the contents of
    **`firestore.rules`** from this project, and click **Publish**.
 
-## 5. Add your team's logins
-For each partner/founder:
-1. **Authentication → Users → Add user**.
-2. Enter their email + a starting password → **Add user**.
-3. Share the email/password with them (they can change the password later).
+## 5. Getting team members in
+Two ways:
+- **They self sign up** (easiest): on the portal login screen they click
+  **Create an account**, enter name/email/password, and land on an
+  "Awaiting approval" screen with no access. You then approve them (step 6).
+- **Or you create them**: **Authentication → Users → Add user** (email + a
+  starting password), then approve.
 
-Suggested accounts (use **lowercase** emails):
-- Parry Hedima (CEO), Sadiq Abubakar (COO), Fred Hosea (CFO),
-  David Ajoma (Risk & Compliance), Alwan Nasir (Plans & Strategy).
+Either way, **no one can see farm data until an admin approves them.**
 
-## 6. Roles — who can edit what
-The portal has three access levels:
+## 6. Roles — who can do what
+Three access levels:
 - **admin** — full access to everything (the co-founders).
 - **finance** — can edit **Transactions**; views everything else (the CFO).
-- **viewer** — view-only everywhere (everyone else). This is the default for
-  any signed-in user with no role assigned.
+- **viewer** — view-only everywhere (everyone else).
+- *pending* — a new sign-up with no access yet, waiting for approval.
 
-**Bootstrap the first admin** (one-time, in the console):
+**Bootstrap the first admin** (one-time, in the console — do this before anyone
+else can be approved):
 1. **Firestore Database → Start collection** → Collection ID: `roles`.
 2. **Document ID** = your login email in lowercase (e.g. `sadiq@...`).
 3. Add a field: **`role`** (string) = `admin` → **Save**.
 
-Then sign in to the portal as that admin and open **Team & Roles** in the
-sidebar to assign everyone else — no more console needed:
-- Parry & Sadiq → **admin**
-- Fred → **finance**
-- David & Alwan → **viewer**
+Then sign in as that admin and open **Team & Roles** in the sidebar to approve
+and assign everyone — no more console needed:
+- Pending sign-ups appear with a **PENDING** badge → **Edit** to set their role
+  (approve), or **Delete** to reject.
+- Set Parry & Sadiq → **admin**, Fred → **finance**, David & Alwan → **viewer**.
 
 > Each person's role takes effect the next time they sign in. Emails must match
 > their login exactly (lowercase).

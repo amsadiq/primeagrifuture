@@ -20,14 +20,15 @@
     <div class="login-card">
       <a href="index.html" class="login-back">← Back to website</a>
       <img src="assets/logo-light.png" alt="Prime AgriFuture Nigeria Limited" class="login-logo" />
-      <h1>Partner Portal</h1>
-      <p class="login-sub">Sign in to manage day-to-day farm operations.</p>
+      <h1 id="authTitle">Partner Portal</h1>
+      <p class="login-sub" id="authSub">Sign in to manage day-to-day farm operations.</p>
 
       <div id="demoBanner" class="demo-banner" hidden>
         <strong>Demo mode</strong> — Firebase isn't configured yet, so records save only in this browser.
         Sign in with <code>demo@paf.ng</code> / <code>demo1234</code>.
       </div>
 
+      <!-- SIGN IN -->
       <form id="loginForm" novalidate>
         <div class="field">
           <label for="loginEmail">Email</label>
@@ -39,9 +40,29 @@
         </div>
         <button type="submit" class="btn btn-primary btn-block" id="loginBtn">Sign In</button>
         <p class="login-status" id="loginStatus" role="alert"></p>
+        <p class="auth-switch">New partner? <a href="#" id="showSignup">Create an account</a></p>
       </form>
 
-      <p class="login-foot">Access is limited to Prime AgriFuture partners &amp; founders. Need an account? Contact an administrator.</p>
+      <!-- SIGN UP -->
+      <form id="signupForm" novalidate hidden>
+        <div class="field">
+          <label for="signupName">Full name</label>
+          <input type="text" id="signupName" autocomplete="name" required placeholder="Your name" />
+        </div>
+        <div class="field">
+          <label for="signupEmail">Email</label>
+          <input type="email" id="signupEmail" autocomplete="username" required placeholder="you@primeagrifuture.com" />
+        </div>
+        <div class="field">
+          <label for="signupPassword">Password</label>
+          <input type="password" id="signupPassword" autocomplete="new-password" required placeholder="At least 6 characters" />
+        </div>
+        <button type="submit" class="btn btn-primary btn-block" id="signupBtn">Request Access</button>
+        <p class="login-status" id="signupStatus" role="alert"></p>
+        <p class="auth-switch">Already have an account? <a href="#" id="showLogin">Sign in</a></p>
+      </form>
+
+      <p class="login-foot">New accounts need an administrator's approval before they can access farm data.</p>
     </div>
     <div class="login-aside" aria-hidden="true">
       <div class="login-aside-inner">
@@ -53,6 +74,18 @@
           <li>📋 Keep a shared daily activity journal</li>
         </ul>
       </div>
+    </div>
+  </div>
+
+  <!-- ============ PENDING APPROVAL VIEW ============ -->
+  <div id="pendingView" class="pending-view" hidden>
+    <div class="pending-card">
+      <img src="assets/logo-light.png" alt="Prime AgriFuture Nigeria Limited" class="login-logo" />
+      <div class="pending-icon">⏳</div>
+      <h1>Awaiting approval</h1>
+      <p>Thanks, <strong id="pendingName">partner</strong>! Your request has been sent to the Prime AgriFuture administrators.</p>
+      <p class="pending-sub">You'll be able to sign in and access the farm records as soon as an admin approves your account.</p>
+      <button class="btn btn-ghost" id="pendingSignOut">Sign out</button>
     </div>
   </div>
 

@@ -353,9 +353,13 @@ function wireUI() {
     btn.disabled = true; btn.textContent = "Creating…";
     try {
       await Store.signUp(email, pw, name);
-      // Record the pending request so an admin can approve it.
-      try { await Store.set("roles", email, { email, name, role: "pending" }); } catch (err) { console.error(err); }
-      // onAuth will fire and show the pending screen.
+      // Record the pending request so an admin can approve it — but never
+      // overwrite an email that already has a role assigned.
+      try {
+        const existing = await Store.getRole(email);
+        if (!existing) await Store.set("roles", email, { email, name, role: "pending" });
+      } catch (err) { console.error(err); }
+      // onAuth will fire and show the pending (or app) screen.
     } catch (err) {
       status.textContent = friendlySignupError(err);
       status.className = "login-status err";

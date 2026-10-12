@@ -45,6 +45,14 @@ img { display:block; max-width:100%; }
   font-family:inherit; font-size:.95rem; color:var(--ink); background:#fcfdfb; transition:border-color .2s, box-shadow .2s; }
 .field input:focus, .field select:focus, .field textarea:focus { outline:none; border-color:var(--green-500); box-shadow:0 0 0 3px rgba(31,138,76,.15); }
 .field textarea { resize:vertical; min-height:70px; }
+.password-wrap { position:relative; }
+.password-wrap input { padding-right:2.9rem; }
+.pw-toggle { position:absolute; top:50%; right:.5rem; transform:translateY(-50%); display:grid; place-items:center;
+  width:2rem; height:2rem; border:0; background:none; cursor:pointer; color:var(--muted); border-radius:6px; }
+.pw-toggle:hover { color:var(--green-700); background:var(--cream-2); }
+.pw-toggle .eye-off { display:none; }
+.pw-toggle.on .eye { display:none; }
+.pw-toggle.on .eye-off { display:block; }
 .login-status { margin-top:.8rem; font-size:.88rem; font-weight:600; min-height:1.1em; }
 .login-status.err { color:#c0392b; }
 .login-status.ok { color:var(--green-600); }

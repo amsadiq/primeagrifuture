@@ -326,6 +326,19 @@ function wireUI() {
     }
   });
 
+  // Show / hide password
+  $$(".pw-toggle").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const input = $("#" + btn.dataset.target);
+      if (!input) return;
+      const show = input.type === "password";
+      input.type = show ? "text" : "password";
+      btn.classList.toggle("on", show);
+      btn.setAttribute("aria-label", show ? "Hide password" : "Show password");
+      input.focus();
+    });
+  });
+
   // Toggle between sign-in and sign-up
   const toggleAuth = (showSignup) => {
     $("#loginForm").hidden = showSignup;

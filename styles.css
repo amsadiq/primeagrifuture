@@ -250,15 +250,9 @@ p { color: var(--muted); }
 .impact-item p { color: rgba(255,255,255,.78); }
 
 /* ---------- Leadership ---------- */
-.gov-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 1rem; margin-bottom: 1.6rem; }
-.gov-pill {
-  background: #fff; border: 1px solid rgba(15,61,36,.1); border-radius: 999px;
-  padding: 1rem 1.2rem; text-align: center; font-weight: 600; color: var(--green-700);
-  box-shadow: var(--shadow-sm);
-}
-
 /* Team: founders & partners */
 .team-block { margin-top: 2.6rem; }
+.team-block-first { margin-top: 0; }
 .team-title {
   font-family: "Inter", sans-serif; font-size: .78rem; font-weight: 700;
   text-transform: uppercase; letter-spacing: .16em; color: var(--green-500);
@@ -369,7 +363,7 @@ p { color: var(--muted); }
 /* ---------- Responsive ---------- */
 @media (max-width: 960px) {
   .about-grid, .contact-grid { grid-template-columns: 1fr; }
-  .cards, .impact-grid, .stats-grid, .gov-grid, .team-grid-3 { grid-template-columns: repeat(2, 1fr); }
+  .cards, .impact-grid, .stats-grid, .team-grid-3 { grid-template-columns: repeat(2, 1fr); }
   .gallery-grid { grid-template-columns: repeat(2, 1fr); }
   .gallery-wide { grid-column: span 2; }
   .gallery-tall { grid-row: span 1; }
@@ -392,7 +386,7 @@ p { color: var(--muted); }
 }
 @media (max-width: 560px) {
   .model-grid { grid-template-columns: 1fr; }
-  .cards, .impact-grid, .stats-grid, .gov-grid, .footer-inner,
+  .cards, .impact-grid, .stats-grid, .footer-inner,
   .team-grid, .team-grid-3, .gallery-grid, .invest-card-grid { grid-template-columns: 1fr; }
   .gallery-wide { grid-column: span 1; }
   .invest-block:last-child { padding-top: 1.4rem; border-top: 1px solid var(--cream-2); }
